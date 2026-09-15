@@ -26,3 +26,9 @@
 ### Fixed
 - 「通过」按钮文字对比度：`--ui-bg-primary` → `var(--color-primary-foreground, #fcfcfc)`（官方 accent 按钮配对色，此前蓝底深字看不清）
 - diff 行前缀误判：YAML frontmatter 分隔线 `---` 被 `startsWith('-')` 误染为删除行 → 排除 `---`/`──`，归入分隔线灰色
+
+## 2.0.2（2026-09-15）
+
+### Added
+- docs/: DECISIONS / TASKS / ROADMAP（本地工作流文档，不入库）
+- 排障经验沉淀为 `hermes-desktop-plugins` skill v2.0.0（暂存待审，含两轮会话踩坑全录）
