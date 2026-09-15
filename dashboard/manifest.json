@@ -1,0 +1,12 @@
+{
+  "name": "hermes-pending-board",
+  "label": "审批台",
+  "description": "技能与记忆暂存写入的交互式审阅 — unified diff、通过/拒绝，与 /skills approve 语义一致",
+  "icon": "CheckCircle",
+  "version": "2.0.0",
+  "tab": {
+    "path": "/hermes-pending-board",
+    "position": "after:skills"
+  },
+  "api": "plugin_api.py"
+}

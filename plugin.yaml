@@ -1,0 +1,3 @@
+name: hermes-pending-board
+version: 2.0.0
+description: 审批台 — pending skills/memory 写入的交互式审阅(随 serve/dashboard 进程运行,无需独立服务)

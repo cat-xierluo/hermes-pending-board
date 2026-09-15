@@ -1,0 +1,10 @@
+.DS_Store
+__pycache__/
+*.pyc
+.state/
+
+# 个人工作流文档 — 不公开
+docs/DECISIONS.md
+docs/TASKS.md
+docs/ROADMAP.md
+AGENTS.md
