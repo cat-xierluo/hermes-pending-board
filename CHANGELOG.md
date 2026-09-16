@@ -32,3 +32,10 @@
 ### Added
 - docs/: DECISIONS / TASKS / ROADMAP（本地工作流文档，不入库）
 - 排障经验沉淀为 `hermes-desktop-plugins` skill v2.0.0（暂存待审，含两轮会话踩坑全录）
+
+## 2.0.3（2026-09-16）
+
+### Fixed
+- approve 失败反馈:行内小字 → 整宽错误块(标题+完整后端原因+死信指引)。
+  起因:存量 75 条暂存全部是结构性死信(stage 不校验:desc 超 60 字符 28 条/patch 缺参 3 条/记忆超容量或 old_text 过期若干),
+  approve 必失败且回滚留存,GUI 表现为"点了没反应"。已全部 reject 清零。

@@ -247,13 +247,33 @@ function Card({ it, onActed }) {
                 },
                 children: '✕ 拒绝',
               }),
-              result && jsx('span', {
+              result && result.ok && jsx('span', {
+                style: { fontFamily: MONO, fontSize: '11.5px', color: 'var(--ui-green)' },
+                children: '✓ 已生效',
+              }),
+            ],
+          }),
+          result && !result.ok && jsxs('div', {
+            style: {
+              margin: '0 14px 12px', padding: '8px 12px',
+              border: '1px solid var(--ui-red)', borderRadius: '7px',
+              background: 'color-mix(in srgb, var(--ui-red) 6%, transparent)',
+            },
+            children: [
+              jsx('div', {
+                style: { fontSize: '12px', fontWeight: 600, color: 'var(--ui-red)', marginBottom: '4px' },
+                children: '✕ 未生效 — 该写入无法落盘',
+              }),
+              jsx('pre', {
                 style: {
-                  fontFamily: MONO, fontSize: '11.5px',
-                  color: result.ok ? 'var(--ui-green)' : 'var(--ui-red)',
-                  wordBreak: 'break-all',
+                  margin: 0, fontFamily: MONO, fontSize: '11px', lineHeight: 1.6,
+                  color: 'var(--ui-text-secondary)', whiteSpace: 'pre-wrap', wordBreak: 'break-all',
                 },
-                children: result.ok ? '✓ 已生效' : (result.output || '失败'),
+                children: String(result.output || result.error || '未知错误'),
+              }),
+              jsx('div', {
+                style: { marginTop: '6px', fontSize: '11.5px', color: 'var(--ui-text-tertiary)' },
+                children: '常见原因: description 超 60 字符 / 记忆超容量 / old_text 已过期。此类记录 approve 永远失败，请 ✕ 拒绝清掉。',
               }),
             ],
           }),
