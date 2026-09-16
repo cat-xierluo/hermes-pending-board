@@ -84,7 +84,7 @@ function DiffView({ lines }) {
   }
   return jsx('div', {
     style: {
-      maxHeight: '420px', overflow: 'auto',
+      maxHeight: 'none', overflow: 'visible',
       border: '1px solid var(--ui-stroke-secondary)',
       background: 'var(--ui-bg-secondary)',
       borderRadius: '8px', padding: '10px 12px',
@@ -190,63 +190,78 @@ function Card({ it, onActed }) {
         children: it.summary,
       }),
       open && jsxs('div', {
-        style: { borderTop: '1px solid var(--ui-stroke-secondary)' },
+        style: { borderTop: '1px solid var(--ui-stroke-secondary)', display: 'flex', alignItems: 'stretch' },
         children: [
-          diffQ.data && diffQ.data.context && jsxs('div', {
-            style: {
-              margin: '10px 14px 0', padding: '8px 12px',
-              border: '1px solid var(--ui-stroke-secondary)', borderRadius: '7px',
-              background: 'var(--ui-bg-secondary)',
-            },
-            children: [
-              jsx('div', {
-                style: { fontSize: '11px', fontWeight: 600, color: 'var(--ui-accent)', marginBottom: '4px', letterSpacing: '0.03em' },
-                children: '🛈 审批上下文 — 为什么改 / 改后效果 / 来源',
-              }),
-              jsx('pre', {
-                style: {
-                  margin: 0, fontSize: '11.5px', lineHeight: 1.7,
-                  color: 'var(--ui-text-secondary)', whiteSpace: 'pre-wrap', wordBreak: 'break-word',
-                  fontFamily: 'inherit',
-                },
-                children: String(diffQ.data.context),
-              }),
-            ],
-          }),
+          // ── 左栏: 审批上下文 + 元信息(独立滚动) ──
           jsxs('div', {
             style: {
-              display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '3px 12px',
-              padding: '10px 14px', fontSize: '12px',
-              borderBottom: '1px solid var(--ui-stroke-secondary)',
+              flex: '0 0 38%', maxWidth: '38%', display: 'flex', flexDirection: 'column',
+              borderRight: '1px solid var(--ui-stroke-secondary)',
+              maxHeight: '480px', overflowY: 'auto', padding: '10px 12px', gap: '10px',
             },
             children: [
-              jsx('span', { style: { color: 'var(--ui-text-tertiary)' }, children: '落盘位置' }),
-              jsx('span', {
-                style: { fontFamily: MONO, fontSize: '11.5px', color: 'var(--ui-text-secondary)', wordBreak: 'break-all' },
-                children: it.target,
-              }),
-              jsx('span', { style: { color: 'var(--ui-text-tertiary)' }, children: '来源' }),
-              jsx('span', {
-                style: { fontFamily: MONO, fontSize: '11.5px', color: 'var(--ui-text-secondary)', wordBreak: 'break-all' },
-                children: it.origin,
+              diffQ.data && diffQ.data.context
+                ? jsxs('div', {
+                    style: {
+                      padding: '8px 10px', border: '1px solid var(--ui-stroke-secondary)',
+                      borderRadius: '7px', background: 'var(--ui-bg-secondary)',
+                    },
+                    children: [
+                      jsx('div', {
+                        style: { fontSize: '11px', fontWeight: 600, color: 'var(--ui-accent)', marginBottom: '4px', letterSpacing: '0.03em' },
+                        children: '🛈 审批上下文',
+                      }),
+                      jsx('pre', {
+                        style: {
+                          margin: 0, fontSize: '11.5px', lineHeight: 1.7,
+                          color: 'var(--ui-text-secondary)', whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                          fontFamily: 'inherit',
+                        },
+                        children: String(diffQ.data.context),
+                      }),
+                    ],
+                  })
+                : jsxs('div', {
+                    style: { padding: '8px 10px', border: '1px dashed var(--ui-stroke-secondary)', borderRadius: '7px' },
+                    children: [
+                      jsx('div', { style: { fontSize: '11px', color: 'var(--ui-text-tertiary)', marginBottom: '3px' }, children: '🛈 审批上下文' }),
+                      jsx('div', { style: { fontSize: '11.5px', color: 'var(--ui-text-quaternary, var(--ui-text-tertiary))', lineHeight: 1.6 }, children: '该暂存未携带上下文(发起时未写 sidecar)。仅凭 diff 判断需谨慎,可先拒。' }),
+                    ],
+                  }),
+              jsxs('div', {
+                style: { display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '3px 10px', fontSize: '12px' },
+                children: [
+                  jsx('span', { style: { color: 'var(--ui-text-tertiary)' }, children: '落盘位置' }),
+                  jsx('span', {
+                    style: { fontFamily: MONO, fontSize: '11.5px', color: 'var(--ui-text-secondary)', wordBreak: 'break-all' },
+                    children: it.target,
+                  }),
+                  jsx('span', { style: { color: 'var(--ui-text-tertiary)' }, children: '来源' }),
+                  jsx('span', {
+                    style: { fontFamily: MONO, fontSize: '11.5px', color: 'var(--ui-text-secondary)', wordBreak: 'break-all' },
+                    children: it.origin,
+                  }),
+                ],
               }),
             ],
           }),
-          jsx('div', { style: { padding: '10px 14px 0' },
-            children: jsx('div', {
-              style: {
-                marginBottom: '6px', fontFamily: MONO, fontSize: '10.5px',
-                letterSpacing: '0.05em', color: 'var(--ui-text-tertiary)',
-              },
-              children: it.sub === 'skills' ? 'UNIFIED DIFF (对照磁盘现状)' : '写入内容 (旧 → 新)',
-            }),
-          }),
-          jsx('div', { style: { padding: '0 14px' },
-            children: diffQ.isLoading
-              ? jsx('div', { style: { color: 'var(--ui-text-tertiary)', fontSize: '12px', padding: '10px 0' }, children: '加载 diff…' })
-              : (diffQ.data && diffQ.data.error)
-                ? jsx('div', { style: { color: 'var(--ui-red)', fontSize: '12px', padding: '10px 0' }, children: diffQ.data.error })
-                : jsx(DiffView, { lines: (diffQ.data && diffQ.data.lines) || [] }),
+          // ── 右栏: diff(独立滚动) ──
+          jsxs('div', {
+            style: { flex: '1 1 auto', display: 'flex', flexDirection: 'column', maxHeight: '480px', overflowY: 'auto', padding: '10px 12px', minWidth: 0 },
+            children: [
+              jsx('div', {
+                style: {
+                  marginBottom: '6px', fontFamily: MONO, fontSize: '10.5px',
+                  letterSpacing: '0.05em', color: 'var(--ui-text-tertiary)',
+                },
+                children: it.sub === 'skills' ? 'UNIFIED DIFF (对照磁盘现状)' : '写入内容 (旧 → 新)',
+              }),
+              diffQ.isLoading
+                ? jsx('div', { style: { color: 'var(--ui-text-tertiary)', fontSize: '12px', padding: '10px 0' }, children: '加载 diff…' })
+                : (diffQ.data && diffQ.data.error)
+                  ? jsx('div', { style: { color: 'var(--ui-red)', fontSize: '12px', padding: '10px 0' }, children: diffQ.data.error })
+                  : jsx(DiffView, { lines: (diffQ.data && diffQ.data.lines) || [] }),
+            ],
           }),
           jsxs('div', {
             style: {
