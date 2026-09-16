@@ -11,17 +11,26 @@
 //      清单不注册, 侧栏却有旧贡献残留, 制造了"空白页"排查噪音。)
 //   3. 不用 window.confirm — 通过/拒绝直接执行, 按钮带 busy + 结果反馈。
 //   4. diff 配色用官方 --ui-diff-add-* / --ui-diff-remove-* 变量。
+//
+// v2.1: queryKey 全部纳入 connectionId 作用域。多网关连接下 queryKey 若不含
+//   连接标识, 切连接后先展示上一网关的缓存(数据串台); 现订阅 host.state.connectionId,
+//   切换时前缀失效全部缓存, 待审数/列表/diff 恒属于当前激活网关。
 
 import {
-  host, useQuery, useQueryClient,
+  host, useQuery, useQueryClient, useValue,
   ROUTES_AREA, SIDEBAR_NAV_AREA, STATUSBAR_AREAS,
 } from '@hermes/plugin-sdk'
 import React from 'react'
 import { jsx, jsxs } from 'react/jsx-runtime'
 
-const { useState } = React
+const { useState, useEffect, useRef } = React
 
-const qk = ['hermes-pending-board', 'pending']
+// 连接作用域: null=本机/legacy → ''。防御性读法兼容旧 SDK(官方 bundled 插件同款)。
+const connIdOf = () => String(host.state.connectionId?.get?.() || '').trim()
+const pendingKey = (c) => ['hermes-pending-board', c, 'pending']
+const gatesKey = (c) => ['hermes-pending-board', c, 'gates']
+const diffKey = (c, sub, id) => ['hermes-pending-board', c, 'diff', sub, id]
+
 let _rest = null // register(ctx) 时捕获
 
 async function api(path, opts) {
@@ -42,8 +51,10 @@ function fmtTs(ts) {
 
 // ── 状态条 pill: 待审数量, 点击进入审批页 ─────────────────────
 function PendingCount({ navigate }) {
+  // 订阅 connectionId: 切连接时 queryKey 随之变化, 待审数立即跟随新网关而非旧缓存。
+  const connId = String(useValue(host.state.connectionId) || '').trim()
   const { data } = useQuery({
-    queryKey: qk,
+    queryKey: pendingKey(connId),
     queryFn: () => api('/pending'),
     refetchInterval: 30_000,
   })
@@ -98,7 +109,7 @@ function Card({ it, onActed }) {
   const [busy, setBusy] = useState(false)
   const [result, setResult] = useState(null)
   const diffQ = useQuery({
-    queryKey: ['hermes-pending-board', 'diff', it.sub, it.id],
+    queryKey: diffKey(connIdOf(), it.sub, it.id),
     queryFn: () => api(`/diff/${it.sub}/${it.id}`),
     enabled: open,
   })
@@ -114,7 +125,7 @@ function Card({ it, onActed }) {
       })
       setResult(r)
       if (r && r.ok) {
-        await qc.invalidateQueries({ queryKey: qk })
+        await qc.invalidateQueries({ queryKey: pendingKey(connIdOf()) })
         onActed && onActed()
       }
     } catch (e) {
@@ -286,11 +297,19 @@ function Card({ it, onActed }) {
 // ── 审批页 ──────────────────────────────────────────────────
 function PendingBoardPage() {
   const [filter, setFilter] = useState('all')
+  const qc = useQueryClient()
+  // 连接切换: 前缀失效全部缓存(含旧网关遗留的 pending/gates/diff), 强制按新 connId 重新拉取。
+  const connId = String(useValue(host.state.connectionId) || '').trim()
+  const firstRun = useRef(true)
+  useEffect(() => {
+    if (firstRun.current) { firstRun.current = false; return }
+    qc.invalidateQueries({ queryKey: ['hermes-pending-board'] })
+  }, [connId, qc])
   const listQ = useQuery({
-    queryKey: qk, queryFn: () => api('/pending'), refetchInterval: 15_000,
+    queryKey: pendingKey(connId), queryFn: () => api('/pending'), refetchInterval: 15_000,
   })
   const gatesQ = useQuery({
-    queryKey: ['hermes-pending-board', 'gates'], queryFn: () => api('/gates'), refetchInterval: 60_000,
+    queryKey: gatesKey(connId), queryFn: () => api('/gates'), refetchInterval: 60_000,
   })
 
   const items = (listQ.data && listQ.data.items) || []
