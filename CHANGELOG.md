@@ -39,3 +39,12 @@
 - approve 失败反馈:行内小字 → 整宽错误块(标题+完整后端原因+死信指引)。
   起因:存量 75 条暂存全部是结构性死信(stage 不校验:desc 超 60 字符 28 条/patch 缺参 3 条/记忆超容量或 old_text 过期若干),
   approve 必失败且回滚留存,GUI 表现为"点了没反应"。已全部 reject 清零。
+
+## 2.1.0（2026-09-16）
+
+### Added
+- **审批上下文**: 每条暂存可携带"为什么改/改后效果/来源"(sidecar `pending/context/<id>.md`)
+  - 后端: /pending 带 hasContext+contextPreview, /diff 带全文 context
+  - 前端: 卡头 🛈 徽标 + 展开区顶部上下文块(accent 边框区隔)
+  - 发起方(agent/cron)stage 后顺手写 sidecar;无 sidecar 时优雅降级(仅 summary)
+  - 已为当前 8 条待审补写真实上下文(打捞/重建理由)

@@ -174,7 +174,7 @@ function Card({ it, onActed }) {
               marginLeft: 'auto', fontFamily: MONO, fontSize: '10.5px',
               color: 'var(--ui-text-tertiary)',
             },
-            children: `${it.id} · ${fmtTs(it.ts)}`,
+            children: `${it.hasContext ? '🛈 ' : ''}${it.id} · ${fmtTs(it.ts)}`,
           }),
           jsx('span', {
             style: { color: 'var(--ui-text-tertiary)', fontSize: '11px' },
@@ -192,6 +192,27 @@ function Card({ it, onActed }) {
       open && jsxs('div', {
         style: { borderTop: '1px solid var(--ui-stroke-secondary)' },
         children: [
+          diffQ.data && diffQ.data.context && jsxs('div', {
+            style: {
+              margin: '10px 14px 0', padding: '8px 12px',
+              border: '1px solid var(--ui-stroke-secondary)', borderRadius: '7px',
+              background: 'var(--ui-bg-secondary)',
+            },
+            children: [
+              jsx('div', {
+                style: { fontSize: '11px', fontWeight: 600, color: 'var(--ui-accent)', marginBottom: '4px', letterSpacing: '0.03em' },
+                children: '🛈 审批上下文 — 为什么改 / 改后效果 / 来源',
+              }),
+              jsx('pre', {
+                style: {
+                  margin: 0, fontSize: '11.5px', lineHeight: 1.7,
+                  color: 'var(--ui-text-secondary)', whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                  fontFamily: 'inherit',
+                },
+                children: String(diffQ.data.context),
+              }),
+            ],
+          }),
           jsxs('div', {
             style: {
               display: 'grid', gridTemplateColumns: 'auto 1fr', gap: '3px 12px',

@@ -77,6 +77,18 @@ def _target_path(record: Dict[str, Any]) -> str:
     return f"~/.hermes/skills/personal/{name}/"
 
 
+
+def _context_text(pid: str) -> str:
+    """审批上下文 sidecar(~/.hermes/pending/context/<id>.md)——为什么改/改后效果/来源。
+    由暂存发起方(agent/cron)在 stage_write 后顺手写入;无则返回空串。"""
+    import os
+    from hermes_constants import get_hermes_home
+    p = Path(get_hermes_home()) / "pending" / "context" / f"{pid}.md"
+    try:
+        return p.read_text(encoding="utf-8").strip()
+    except Exception:
+        return ""
+
 @router.get("/pending")
 def list_pending() -> Dict[str, Any]:
     out = []
@@ -92,10 +104,13 @@ def list_pending() -> Dict[str, Any]:
             else:
                 op_desc = p.get("action", "?")
                 name = p.get("name") or ("USER.md" if p.get("target") == "user" else "MEMORY.md")
+            ctx = _context_text(rec["id"])
             out.append({
                 "id": rec["id"], "sub": sub, "name": name, "ops": op_desc,
                 "summary": rec.get("summary", ""), "origin": rec.get("origin", ""),
                 "ts": rec.get("created_at", 0), "target": _target_path(rec),
+                "hasContext": bool(ctx),
+                "contextPreview": (ctx[:120] + "…") if len(ctx) > 120 else ctx,
             })
     out.sort(key=lambda r: r["ts"])
     return {"items": out}
@@ -113,7 +128,7 @@ def diff(sub: str, pid: str) -> Dict[str, Any]:
     if not rec:
         return {"error": "not found"}
     lines = _diff_ops(rec.get("payload", {})) if sub == wa.SKILLS else _memory_diff(rec)
-    return {"id": pid, "sub": sub, "lines": lines}
+    return {"id": pid, "sub": sub, "lines": lines, "context": _context_text(pid)}
 
 
 @router.post("/act")
