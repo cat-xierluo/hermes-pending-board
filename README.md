@@ -70,8 +70,13 @@ MIT
 
 两条配套（参照 `docs/DECISIONS.md` DEC-006，本地）：
 1. **发起方约定**：agent 每次 stage 后顺手写 sidecar（当场写最准）
-2. **每日补写 cron**：为漏写的存量补写（从会话库/git 历史回溯动机），示例 job：
+2. **每日补写 cron（正式推荐配置）**：为漏写的存量补写（从会话库/git 历史回溯动机）。
+凌晨 3:30 跑（错开整点高峰；审批人隔天看队列时上下文已就位）。可直接复制：
 
+```bash
+hermes cron create --name "pending-context-backfill" "30 3 * * *" \
+  "任务: 为 ~/.hermes/pending/{skills,memory}/ 里没有对应 context sidecar(~/.hermes/pending/context/<id>.md)的暂存记录补写审批上下文。步骤: 1) 遍历 pending/{skills,memory}/*.json,找出 pending/context/ 下无同名 .md 的; 2) 对每条: 从 state.db 会话库(该暂存 created_at 前后的 assistant 正文/工具调用)和 git log 挖出修改动机,写三段式 sidecar(## 为什么改 / ## 改后效果 / ## 来源),末尾注明'本 sidecar 为定时补写(时间)'; 3) 挖不到动机的写明'来源不可考,仅凭 diff 判断'。约束: 只写 context/*.md,绝不碰暂存 JSON 本身,绝不 approve/reject 任何记录。输出一行摘要: 补写 N 条/跳过 M 条(不可考 K 条)。另外: 若发现 MEMORY.md 超 2200 字符上限导致记忆暂存会成为死信,在摘要里提醒。" \
+  --skill "hermes-ops" --deliver "local"
 ```
-hermes cron create --name "pending-context-backfill" "40 22 * * *"   "<遍历 pending/{skills,memory} 无 sidecar 的记录，从会话历史挖动机补写三段式 context；只写 context/*.md 不碰暂存本身>"   --skill "hermes-ops" --deliver "local"
-```
+
+> `--skill hermes-ops` 换成你自己环境里承载运维知识的 skill（或不带此参数）。
