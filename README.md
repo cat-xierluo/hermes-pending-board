@@ -61,3 +61,17 @@ hermes plugins install cat-xierluo/hermes-pending-board
 ## License
 
 MIT
+
+## 搭配：审批上下文 sidecar（推荐配置）
+
+暂存记录本身只有一句话 gist（上游 `stage_write` schema 所限），审批时"为什么改"需要额外上下文。
+本插件支持 sidecar 机制：`~/.hermes/pending/context/<id>.md`（三段式：为什么改/改后效果/来源），
+`/pending` 与 `/diff` 自动附带；无 sidecar 的记录显示警示框。
+
+两条配套（参照 `docs/DECISIONS.md` DEC-006，本地）：
+1. **发起方约定**：agent 每次 stage 后顺手写 sidecar（当场写最准）
+2. **每日补写 cron**：为漏写的存量补写（从会话库/git 历史回溯动机），示例 job：
+
+```
+hermes cron create --name "pending-context-backfill" "40 22 * * *"   "<遍历 pending/{skills,memory} 无 sidecar 的记录，从会话历史挖动机补写三段式 context；只写 context/*.md 不碰暂存本身>"   --skill "hermes-ops" --deliver "local"
+```
