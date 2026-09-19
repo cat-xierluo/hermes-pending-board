@@ -40,6 +40,13 @@ async function api(path, opts) {
 
 const MONO = 'ui-monospace, SFMono-Regular, Menlo, monospace'
 
+// origin 技术标识 → 审批人可读的中文标签(仅显示层映射, 原值保留在括号里)
+const ORIGIN_LABEL = {
+  assistant_tool: '前台会话(assistant_tool)',
+  background_review: '后台自省(background_review)',
+}
+const originLabel = (o) => ORIGIN_LABEL[String(o || '').trim()] || o || '—'
+
 function fmtTs(ts) {
   if (!ts) return ''
   try {
@@ -254,8 +261,8 @@ function Card({ it, onActed }) {
               jsxs('span', { style: { color: 'var(--ui-text-tertiary)' }, children: [
                 '来源 ',
                 jsx('span', {
-                  style: { fontFamily: MONO, color: 'var(--ui-text-secondary)', wordBreak: 'break-all' },
-                  children: it.origin,
+                  style: { fontFamily: MONO, fontSize: '11px', color: 'var(--ui-text-secondary)', wordBreak: 'break-all' },
+                  children: originLabel(it.origin),
                 }),
               ] }),
             ],

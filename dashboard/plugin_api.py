@@ -23,6 +23,25 @@ from hermes_cli.write_approval_commands import _approve, _reject
 router = APIRouter()
 _lock = threading.Lock()  # 审批操作串行化
 
+# 操作类型 → 中文(仅显示层; 原始英文值仍在 diff/暂存 JSON 里)
+_ACTION_ZH = {
+    "create": "新建", "patch": "补丁", "write_file": "写文件", "delete": "删除",
+    "batch": "批量", "add": "新增", "replace": "替换", "edit": "编辑",
+}
+_ZH = lambda a: _ACTION_ZH.get((a or "").strip(), a or "?")
+
+# skill_manage 等官方工具生成的固定英文 summary 模式 → 中文(不匹配则原样透传)
+_BATCH_SUMMARY_RE = __import__("re").compile(r"^batch\((\d+) ops?: (.+)\) on (.+)$")
+
+
+def _zh_summary(s: str) -> str:
+    m = _BATCH_SUMMARY_RE.match((s or "").strip())
+    if not m:
+        return s
+    n, ops, name = m.groups()
+    ops_zh = "+".join(_ZH(a.strip()) for a in ops.split("+"))
+    return f"批量 {n} 项操作({ops_zh}) → {name}"
+
 
 class ActBody(BaseModel):
     action: str   # approve | reject
@@ -107,7 +126,7 @@ def list_pending() -> Dict[str, Any]:
             ctx = _context_text(rec["id"])
             out.append({
                 "id": rec["id"], "sub": sub, "name": name, "ops": op_desc,
-                "summary": rec.get("summary", ""), "origin": rec.get("origin", ""),
+                "summary": _zh_summary(rec.get("summary", "")), "origin": rec.get("origin", ""),
                 "ts": rec.get("created_at", 0), "target": _target_path(rec),
                 "hasContext": bool(ctx),
                 "contextPreview": (ctx[:120] + "…") if len(ctx) > 120 else ctx,
