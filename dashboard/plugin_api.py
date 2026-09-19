@@ -55,7 +55,7 @@ def _diff_ops(payload: Dict[str, Any]) -> List[str]:
         ops = payload.get("operations") or []
         out: List[str] = []
         for i, op in enumerate(ops, 1):
-            head = f"── op {i}/{len(ops)}: {op.get('action')} on {op.get('name', '')}"
+            head = f"── 第 {i}/{len(ops)} 项: {_ZH(op.get('action'))} → {op.get('name', '')}"
             if op.get("file_path"):
                 head += f" ({op.get('file_path')})"
             out.append(head + " " + "─" * 20)
@@ -116,12 +116,12 @@ def list_pending() -> Dict[str, Any]:
             p = rec.get("payload", {})
             ops = p.get("operations")
             if sub == wa.SKILLS and ops:
-                op_desc = " + ".join(
-                    o.get("action", "") + (f":{o['file_path']}" if o.get("file_path") else "")
+                op_desc = "+".join(
+                    _ZH(o.get("action", "")) + (f":{o['file_path']}" if o.get("file_path") else "")
                     for o in ops)
                 name = ops[0].get("name") or "?"
             else:
-                op_desc = p.get("action", "?")
+                op_desc = _ZH(p.get("action", "?"))
                 name = p.get("name") or ("USER.md" if p.get("target") == "user" else "MEMORY.md")
             ctx = _context_text(rec["id"])
             out.append({

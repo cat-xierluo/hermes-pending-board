@@ -440,14 +440,14 @@ function PendingBoardPage() {
             borderRadius: '999px', padding: '2px 10px', fontSize: '11.5px',
             border: '1px solid var(--ui-stroke-secondary)', color: 'var(--ui-text-tertiary)',
           },
-          children: `技能写审批 ${gatesQ.data.skills ? 'ON' : 'OFF'}`,
+          children: `技能写审批 ${gatesQ.data.skills ? '已开启' : '已关闭'}`,
         }),
         jsx('span', {
           style: {
             borderRadius: '999px', padding: '2px 10px', fontSize: '11.5px',
             border: '1px solid var(--ui-stroke-secondary)', color: 'var(--ui-text-tertiary)',
           },
-          children: `记忆写审批 ${gatesQ.data.memory ? 'ON' : 'OFF'}`,
+          children: `记忆写审批 ${gatesQ.data.memory ? '已开启' : '已关闭'}`,
         }),
       ] }),
       listQ.isLoading
